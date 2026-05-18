@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import ChartTooltipContent from '@/components/dashboard/ChartTooltipContent'
 import { useChartTheme } from '@/hooks/useChartTheme'
 import { buildCompletionTrendData } from '@/lib/chartData'
 
@@ -42,16 +43,9 @@ export default function TaskCompletionTrendChart({ tasks, loading }) {
           axisLine={{ stroke: theme.grid }}
           tickLine={{ stroke: theme.grid }}
         />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: theme.tooltipBg,
-            borderColor: theme.tooltipBorder,
-            color: theme.tooltipText,
-            borderRadius: '0.5rem',
-          }}
-          formatter={(value) => [value, 'Completed']}
-        />
+        <Tooltip content={(props) => <ChartTooltipContent {...props} />} />
         <Line
+          name="Completed"
           type="monotone"
           dataKey="count"
           stroke={theme.line}

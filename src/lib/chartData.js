@@ -39,9 +39,12 @@ export function buildWeeklyWorkloadData(tasks, referenceDate = new Date()) {
       return isSameCalendarDay(new Date(task.deadline), day)
     }).length
 
+    const dateKey = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`
+
     return {
       day: label,
       count,
+      dateKey,
     }
   })
 }

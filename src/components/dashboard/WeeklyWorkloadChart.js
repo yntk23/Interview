@@ -5,21 +5,28 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
+import ChartTooltipContent from '@/components/dashboard/ChartTooltipContent'
 import { useChartTheme } from '@/hooks/useChartTheme'
 import { buildWeeklyWorkloadData } from '@/lib/chartData'
 
-export default function WeeklyWorkloadChart({ tasks, loading }) {
+export default function WeeklyWorkloadChart({
+  tasks,
+  loading,
+  selectedDateKey,
+  onBarClick,
+}) {
   const theme = useChartTheme()
   const data = useMemo(() => buildWeeklyWorkloadData(tasks), [tasks])
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center text-sm text-slate-500 dark:text-slate-400">
+      <div className="flex h-64 items-center justify-center text-sm text-slate-500">
         Loading chart...
       </div>
     )
@@ -43,15 +50,27 @@ export default function WeeklyWorkloadChart({ tasks, loading }) {
         />
         <Tooltip
           cursor={{ fill: theme.grid, opacity: 0.35 }}
-          contentStyle={{
-            backgroundColor: theme.tooltipBg,
-            borderColor: theme.tooltipBorder,
-            color: theme.tooltipText,
-            borderRadius: '0.5rem',
-          }}
-          formatter={(value) => [value, 'Tasks due']}
+          content={(props) => <ChartTooltipContent {...props} />}
         />
-        <Bar dataKey="count" fill={theme.bar} radius={[6, 6, 0, 0]} />
+        <Bar
+          name="Tasks due"
+          dataKey="count"
+          radius={[6, 6, 0, 0]}
+          onClick={(bar) => {
+            const dateKey = bar?.payload?.dateKey ?? bar?.dateKey
+            if (dateKey && onBarClick) {
+              onBarClick(dateKey)
+            }
+          }}
+          className="cursor-pointer"
+        >
+          {data.map((entry) => (
+            <Cell
+              key={entry.dateKey}
+              fill={entry.dateKey === selectedDateKey ? theme.line : theme.bar}
+            />
+          ))}
+        </Bar>
       </BarChart>
     </ResponsiveContainer>
   )

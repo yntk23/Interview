@@ -1,16 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Modal from '@/components/ui/Modal'
+import { TASK_PRIORITIES } from '@/lib/priority'
 import { TASK_STATUSES } from '@/lib/tasks'
 
 export default function TaskEditModal({ task, open, onClose, onSave, saving }) {
   const [title, setTitle] = useState('')
   const [status, setStatus] = useState('TODO')
+  const [priority, setPriority] = useState('MEDIUM')
 
   useEffect(() => {
     if (task) {
       setTitle(task.title ?? '')
       setStatus(task.status ?? 'TODO')
+      setPriority(task.priority ?? 'MEDIUM')
     }
   }, [task])
 
@@ -25,7 +29,7 @@ export default function TaskEditModal({ task, open, onClose, onSave, saving }) {
     }
 
     try {
-      await onSave({ title: title.trim(), status })
+      await onSave({ title: title.trim(), status, priority })
       onClose()
     } catch {
       // Toast handled in TasksContext
@@ -33,10 +37,11 @@ export default function TaskEditModal({ task, open, onClose, onSave, saving }) {
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
-      role="dialog"
-      aria-modal="true"
+    <Modal
+      open={open}
+      onClose={onClose}
+      dismissible={!saving}
+      overlayClassName="bg-slate-900/40"
       aria-labelledby="edit-task-title"
     >
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-xl">
@@ -79,13 +84,27 @@ export default function TaskEditModal({ task, open, onClose, onSave, saving }) {
             </select>
           </div>
 
-          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={onClose}
+          <div>
+            <label htmlFor="edit-priority" className="field-label">
+              Priority
+            </label>
+            <select
+              id="edit-priority"
+              value={priority}
+              onChange={(event) => setPriority(event.target.value)}
               disabled={saving}
-              className="btn-secondary"
+              className="field-input"
             >
+              {TASK_PRIORITIES.map((value) => (
+                <option key={value} value={value}>
+                  {value.charAt(0) + value.slice(1).toLowerCase()}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
+            <button type="button" onClick={onClose} disabled={saving} className="btn-secondary">
               Cancel
             </button>
             <button type="submit" disabled={saving} className="btn-primary">
@@ -94,6 +113,6 @@ export default function TaskEditModal({ task, open, onClose, onSave, saving }) {
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   )
 }

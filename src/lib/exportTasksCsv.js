@@ -1,6 +1,6 @@
 import { formatDateTime } from '@/lib/tasks'
 
-const CSV_HEADERS = ['ลำดับ', 'ชื่องาน', 'สถานะ', 'deadline', 'วันที่เพิ่ม']
+const CSV_HEADERS = ['ลำดับ', 'ชื่องาน', 'สถานะ', 'Priority', 'deadline', 'วันที่เพิ่ม']
 
 function escapeCsvCell(value) {
   const text = value == null ? '' : String(value)
@@ -30,6 +30,7 @@ export function buildTasksCsv(tasks) {
     index + 1,
     task.title ?? '',
     String(task.status ?? '').toUpperCase(),
+    String(task.priority ?? 'MEDIUM').toUpperCase(),
     formatCsvDate(task.deadline),
     formatCsvDate(task.created_at),
   ])

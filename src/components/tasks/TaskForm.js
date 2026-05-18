@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { TASK_PRIORITIES } from '@/lib/priority'
 import { TASK_STATUSES, fromDatetimeLocalValue } from '@/lib/tasks'
 import { useTasks } from '@/contexts/TasksContext'
 
 const INITIAL_FORM = {
   title: '',
   status: 'TODO',
+  priority: 'MEDIUM',
   deadline: '',
 }
 
@@ -32,6 +34,7 @@ export default function TaskForm() {
       await addTask({
         title: form.title,
         status: form.status,
+        priority: form.priority,
         deadline: fromDatetimeLocalValue(form.deadline),
       })
       setForm(INITIAL_FORM)
@@ -82,6 +85,25 @@ export default function TaskForm() {
         </div>
 
         <div>
+          <label htmlFor="task-priority" className="field-label">
+            Priority
+          </label>
+          <select
+            id="task-priority"
+            value={form.priority}
+            onChange={(event) => updateField('priority', event.target.value)}
+            disabled={actionLoading}
+            className="field-input"
+          >
+            {TASK_PRIORITIES.map((value) => (
+              <option key={value} value={value}>
+                {value.charAt(0) + value.slice(1).toLowerCase()}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="sm:col-span-2">
           <label htmlFor="task-deadline" className="field-label">
             Deadline
           </label>
@@ -90,8 +112,13 @@ export default function TaskForm() {
             type="datetime-local"
             value={form.deadline}
             onChange={(event) => updateField('deadline', event.target.value)}
+            onClick={(event) => {
+              if (typeof event.target.showPicker === 'function') {
+                event.target.showPicker()
+              }
+            }}
             disabled={actionLoading}
-            className="field-input"
+            className="field-input cursor-pointer"
           />
         </div>
 

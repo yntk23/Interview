@@ -5,14 +5,20 @@ import WeeklyWorkloadChart from '@/components/dashboard/WeeklyWorkloadChart'
 import { useTasks } from '@/contexts/TasksContext'
 
 export default function DashboardInsights() {
-  const { analyticsTasks, loading } = useTasks()
+  const {
+    analyticsTasks,
+    loading,
+    chartDeadlineDay,
+    setChartDayFilter,
+    clearChartDayFilter,
+  } = useTasks()
 
   return (
     <section className="card-panel">
       <div>
         <h2 className="text-lg font-semibold text-slate-900">Insights</h2>
         <p className="card-panel-muted mt-1 text-sm">
-          Workload and completion trends from your task deadlines
+          Click a bar to filter the task list by that day&apos;s deadlines
         </p>
       </div>
 
@@ -21,7 +27,12 @@ export default function DashboardInsights() {
           <h3 className="text-sm font-semibold text-slate-900">Weekly workload</h3>
           <p className="card-panel-muted mt-1 text-xs">Tasks due Mon–Sun this week</p>
           <div className="mt-4">
-            <WeeklyWorkloadChart tasks={analyticsTasks} loading={loading} />
+            <WeeklyWorkloadChart
+              tasks={analyticsTasks}
+              loading={loading}
+              selectedDateKey={chartDeadlineDay}
+              onBarClick={setChartDayFilter}
+            />
           </div>
         </article>
 
