@@ -23,8 +23,13 @@ export default function TaskEditModal({ task, open, onClose, onSave, saving }) {
     if (!title.trim()) {
       return
     }
-    await onSave({ title: title.trim(), status })
-    onClose()
+
+    try {
+      await onSave({ title: title.trim(), status })
+      onClose()
+    } catch {
+      // Toast handled in TasksContext
+    }
   }
 
   return (
@@ -34,14 +39,14 @@ export default function TaskEditModal({ task, open, onClose, onSave, saving }) {
       aria-modal="true"
       aria-labelledby="edit-task-title"
     >
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-xl">
         <h3 id="edit-task-title" className="text-lg font-semibold text-slate-900">
           Edit task
         </h3>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
-            <label htmlFor="edit-title" className="text-sm font-medium text-slate-700">
+            <label htmlFor="edit-title" className="field-label">
               Title
             </label>
             <input
@@ -50,19 +55,21 @@ export default function TaskEditModal({ task, open, onClose, onSave, saving }) {
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               required
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              disabled={saving}
+              className="field-input"
             />
           </div>
 
           <div>
-            <label htmlFor="edit-status" className="text-sm font-medium text-slate-700">
+            <label htmlFor="edit-status" className="field-label">
               Status
             </label>
             <select
               id="edit-status"
               value={status}
               onChange={(event) => setStatus(event.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              disabled={saving}
+              className="field-input"
             >
               {TASK_STATUSES.map((value) => (
                 <option key={value} value={value}>
@@ -72,20 +79,16 @@ export default function TaskEditModal({ task, open, onClose, onSave, saving }) {
             </select>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+              className="btn-secondary"
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-            >
+            <button type="submit" disabled={saving} className="btn-primary">
               {saving ? 'Saving...' : 'Save changes'}
             </button>
           </div>

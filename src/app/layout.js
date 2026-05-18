@@ -1,3 +1,4 @@
+import AppToaster from '@/components/AppToaster'
 import { AuthProvider } from '@/contexts/AuthContext'
 import './globals.css'
 
@@ -11,6 +12,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <AuthProvider>
+          <AppToaster />
           <div className="app-shell">{children}</div>
         </AuthProvider>
       </body>

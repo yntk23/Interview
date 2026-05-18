@@ -36,20 +36,18 @@ export default function TaskForm() {
       })
       setForm(INITIAL_FORM)
     } catch {
-      // Error surfaced via TasksContext
+      // Toast handled in TasksContext
     }
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="card-panel">
       <h2 className="text-lg font-semibold text-slate-900">Add task</h2>
-      <p className="mt-1 text-sm text-slate-500">
-        Create a new task for your workspace.
-      </p>
+      <p className="card-panel-muted mt-1 text-sm">Create a new task for your workspace.</p>
 
       <form onSubmit={handleSubmit} className="mt-5 grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <label htmlFor="task-title" className="text-sm font-medium text-slate-700">
+          <label htmlFor="task-title" className="field-label">
             Title <span className="text-red-500">*</span>
           </label>
           <input
@@ -58,20 +56,22 @@ export default function TaskForm() {
             value={form.title}
             onChange={(event) => updateField('title', event.target.value)}
             required
+            disabled={actionLoading}
             placeholder="Task title"
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            className="field-input"
           />
         </div>
 
         <div>
-          <label htmlFor="task-status" className="text-sm font-medium text-slate-700">
+          <label htmlFor="task-status" className="field-label">
             Status
           </label>
           <select
             id="task-status"
             value={form.status}
             onChange={(event) => updateField('status', event.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            disabled={actionLoading}
+            className="field-input"
           >
             {TASK_STATUSES.map((value) => (
               <option key={value} value={value}>
@@ -82,7 +82,7 @@ export default function TaskForm() {
         </div>
 
         <div>
-          <label htmlFor="task-deadline" className="text-sm font-medium text-slate-700">
+          <label htmlFor="task-deadline" className="field-label">
             Deadline
           </label>
           <input
@@ -90,7 +90,8 @@ export default function TaskForm() {
             type="datetime-local"
             value={form.deadline}
             onChange={(event) => updateField('deadline', event.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            disabled={actionLoading}
+            className="field-input"
           />
         </div>
 
@@ -99,11 +100,7 @@ export default function TaskForm() {
         ) : null}
 
         <div className="sm:col-span-2">
-          <button
-            type="submit"
-            disabled={actionLoading}
-            className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-          >
+          <button type="submit" disabled={actionLoading} className="btn-primary">
             {actionLoading ? 'Adding...' : 'Add task'}
           </button>
         </div>

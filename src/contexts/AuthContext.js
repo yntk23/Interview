@@ -3,26 +3,50 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { getSupabase } from '@/lib/supabase'
 
-const STORAGE_KEY = 'user_id'
+const USER_ID_KEY = 'user_id'
+const USERNAME_KEY = 'username'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [userId, setUserId] = useState(null)
+  const [username, setUsername] = useState(null)
   const [loading, setLoading] = useState(true)
   const [authLoading, setAuthLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      setUserId(stored)
+  const loadUsername = useCallback(async (id) => {
+    const storedUsername = localStorage.getItem(USERNAME_KEY)
+    if (storedUsername) {
+      setUsername(storedUsername)
+      return
     }
-    setLoading(false)
+
+    const { data, error: fetchError } = await getSupabase()
+      .from('users')
+      .select('username')
+      .eq('user_id', id)
+      .maybeSingle()
+
+    if (!fetchError && data?.username) {
+      setUsername(data.username)
+      localStorage.setItem(USERNAME_KEY, data.username)
+    }
   }, [])
 
-  const login = useCallback(async (username) => {
-    const trimmed = username.trim()
+  useEffect(() => {
+    const storedUserId = localStorage.getItem(USER_ID_KEY)
+    if (!storedUserId) {
+      setLoading(false)
+      return
+    }
+
+    setUserId(storedUserId)
+    loadUsername(storedUserId).finally(() => setLoading(false))
+  }, [loadUsername])
+
+  const login = useCallback(async (rawUsername) => {
+    const trimmed = rawUsername.trim()
     if (!trimmed) {
       setError('Username is required')
       return false
@@ -59,7 +83,9 @@ export function AuthProvider({ children }) {
       }
 
       setUserId(String(id))
-      localStorage.setItem(STORAGE_KEY, String(id))
+      setUsername(trimmed)
+      localStorage.setItem(USER_ID_KEY, String(id))
+      localStorage.setItem(USERNAME_KEY, trimmed)
       return true
     } catch (err) {
       setError(err.message ?? 'Login failed')
@@ -71,13 +97,16 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     setUserId(null)
-    localStorage.removeItem(STORAGE_KEY)
+    setUsername(null)
+    localStorage.removeItem(USER_ID_KEY)
+    localStorage.removeItem(USERNAME_KEY)
     setError(null)
   }, [])
 
   const value = useMemo(
     () => ({
       userId,
+      username,
       isLoggedIn: Boolean(userId),
       loading,
       authLoading,
@@ -85,7 +114,7 @@ export function AuthProvider({ children }) {
       login,
       logout,
     }),
-    [userId, loading, authLoading, error, login, logout],
+    [userId, username, loading, authLoading, error, login, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

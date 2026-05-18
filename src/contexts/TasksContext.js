@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from 'react'
+import { toast } from 'sonner'
 import { getSupabase } from '@/lib/supabase'
 import {
   EMPTY_TASK_STATS,
@@ -48,7 +49,9 @@ export function TasksProvider({ userId, children }) {
       const nextTasks = await fetchTasks(userId)
       syncFromTasks(nextTasks)
     } catch (err) {
-      setError(err.message ?? 'Failed to load tasks')
+      const message = err.message ?? 'Failed to load tasks'
+      setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -89,15 +92,20 @@ export function TasksProvider({ userId, children }) {
   }, [userId])
 
   const runAction = useCallback(
-    async (action) => {
+    async (action, successMessage) => {
       setActionLoading(true)
       setError(null)
 
       try {
         await action()
         await refresh()
+        if (successMessage) {
+          toast.success(successMessage)
+        }
       } catch (err) {
-        setError(err.message ?? 'Task operation failed')
+        const message = err.message ?? 'Task operation failed'
+        setError(message)
+        toast.error(message)
         throw err
       } finally {
         setActionLoading(false)
@@ -107,17 +115,23 @@ export function TasksProvider({ userId, children }) {
   )
 
   const addTask = useCallback(
-    (payload) => runAction(() => createTask(userId, payload)),
+    (payload) =>
+      runAction(() => createTask(userId, payload), 'Task added successfully'),
     [runAction, userId],
   )
 
   const editTask = useCallback(
-    (taskId, payload) => runAction(() => updateTask(userId, taskId, payload)),
+    (taskId, payload) =>
+      runAction(
+        () => updateTask(userId, taskId, payload),
+        'Task updated successfully',
+      ),
     [runAction, userId],
   )
 
   const removeTask = useCallback(
-    (taskId) => runAction(() => deleteTask(userId, taskId)),
+    (taskId) =>
+      runAction(() => deleteTask(userId, taskId), 'Task deleted successfully'),
     [runAction, userId],
   )
 

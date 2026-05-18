@@ -8,16 +8,14 @@ export default function TaskProgressBar({ stats, loading }) {
   return (
     <section className="mt-6">
       <header className="mb-2 flex items-center justify-between text-sm">
-        <span className="font-medium text-slate-700 dark:text-slate-300">
-          Completion progress
-        </span>
-        <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+        <span className="font-medium text-slate-700">Completion progress</span>
+        <span className="font-semibold text-emerald-700">
           {loading ? '—' : `${percent}%`}
         </span>
       </header>
 
       <div
-        className="h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
+        className="h-3 w-full overflow-hidden rounded-full bg-slate-200"
         role="progressbar"
         aria-valuenow={percent}
         aria-valuemin={0}
@@ -30,7 +28,7 @@ export default function TaskProgressBar({ stats, loading }) {
         />
       </div>
 
-      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+      <p className="card-panel-muted mt-2 text-xs">
         {stats.done} of {stats.total} tasks completed
       </p>
     </section>
