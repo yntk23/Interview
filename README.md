@@ -60,7 +60,7 @@
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/your-username/task-manager.git
+git clone https://github.com/yntk23/Interview
 ```
 
 **2. Install dependencies**
