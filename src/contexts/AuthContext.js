@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 
 const STORAGE_KEY = 'user_id'
 
@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
     setError(null)
 
     try {
-      const { data: existing, error: selectError } = await supabase
+      const { data: existing, error: selectError } = await getSupabase()
         .from('users')
         .select('user_id')
         .eq('username', trimmed)
@@ -45,7 +45,7 @@ export function AuthProvider({ children }) {
       let id = existing?.user_id
 
       if (!id) {
-        const { data: created, error: insertError } = await supabase
+        const { data: created, error: insertError } = await getSupabase()
           .from('users')
           .insert({ username: trimmed })
           .select('user_id')

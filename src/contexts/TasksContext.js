@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import {
   EMPTY_TASK_STATS,
   applyTaskRealtimeEvent,
@@ -63,7 +63,7 @@ export function TasksProvider({ userId, children }) {
       return undefined
     }
 
-    const channel = supabase
+    const channel = getSupabase()
       .channel(`tasks:user:${userId}`)
       .on(
         'postgres_changes',
@@ -84,7 +84,7 @@ export function TasksProvider({ userId, children }) {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      getSupabase().removeChannel(channel)
     }
   }, [userId])
 

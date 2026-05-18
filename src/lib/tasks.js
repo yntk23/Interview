@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 
 export const TASK_STATUSES = ['TODO', 'DOING', 'DONE']
 
@@ -111,7 +111,7 @@ export function applyTaskRealtimeEvent(tasks, payload, userId) {
 }
 
 export async function fetchTasks(userId) {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('tasks')
     .select('id, user_id, title, status, deadline, created_at')
     .eq('user_id', userId)
@@ -125,7 +125,7 @@ export async function fetchTasks(userId) {
 }
 
 export async function fetchTaskStats(userId) {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('tasks')
     .select('status')
     .eq('user_id', userId)
@@ -138,7 +138,7 @@ export async function fetchTaskStats(userId) {
 }
 
 export async function createTask(userId, { title, status, deadline }) {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('tasks')
     .insert({
       user_id: userId,
@@ -157,7 +157,7 @@ export async function createTask(userId, { title, status, deadline }) {
 }
 
 export async function updateTask(userId, taskId, { title, status }) {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('tasks')
     .update({
       title: title.trim(),

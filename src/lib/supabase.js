@@ -14,21 +14,32 @@ function normalizeSupabaseKey(key) {
   return key.trim()
 }
 
-const supabaseUrl = normalizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '')
-const supabaseAnonKey = normalizeSupabaseKey(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '')
+let supabaseClient = null
 
-if (!supabaseUrl) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
-}
+export function getSupabase() {
+  if (supabaseClient) {
+    return supabaseClient
+  }
 
-if (!supabaseAnonKey) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY')
-}
-
-if (!/^https?:\/\//i.test(supabaseUrl)) {
-  throw new Error(
-    'NEXT_PUBLIC_SUPABASE_URL must be a project URL like https://<ref>.supabase.co (no /rest/v1 path)',
+  const supabaseUrl = normalizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '')
+  const supabaseAnonKey = normalizeSupabaseKey(
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
   )
-}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+  if (!supabaseUrl) {
+    throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
+  }
+
+  if (!supabaseAnonKey) {
+    throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  }
+
+  if (!/^https?:\/\//i.test(supabaseUrl)) {
+    throw new Error(
+      'NEXT_PUBLIC_SUPABASE_URL must be a project URL like https://<ref>.supabase.co (no /rest/v1 path)',
+    )
+  }
+
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+  return supabaseClient
+}
