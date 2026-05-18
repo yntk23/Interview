@@ -31,8 +31,12 @@ function normalizeTask(record) {
     status: record.status,
     deadline: record.deadline,
     created_at: record.created_at,
+    updated_at: record.updated_at ?? null,
   }
 }
+
+const TASK_SELECT =
+  'id, user_id, title, status, deadline, created_at, updated_at'
 
 export function computeTaskStats(tasks) {
   const stats = { ...EMPTY_TASK_STATS }
@@ -110,18 +114,29 @@ export function applyTaskRealtimeEvent(tasks, payload, userId) {
   return tasks
 }
 
-export async function fetchTasks(userId) {
-  const { data, error } = await getSupabase()
+async function queryTasks(userId, columns) {
+  return getSupabase()
     .from('tasks')
-    .select('id, user_id, title, status, deadline, created_at')
+    .select(columns)
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
+}
+
+export async function fetchTasks(userId) {
+  let { data, error } = await queryTasks(userId, TASK_SELECT)
+
+  if (error?.message?.includes('updated_at')) {
+    ;({ data, error } = await queryTasks(
+      userId,
+      'id, user_id, title, status, deadline, created_at',
+    ))
+  }
 
   if (error) {
     throw error
   }
 
-  return data ?? []
+  return (data ?? []).map(normalizeTask)
 }
 
 export async function fetchTaskStats(userId) {
@@ -138,45 +153,68 @@ export async function fetchTaskStats(userId) {
 }
 
 export async function createTask(userId, { title, status, deadline }) {
-  const { data, error } = await getSupabase()
+  const row = {
+    user_id: userId,
+    title: title.trim(),
+    status,
+    deadline: deadline || null,
+  }
+
+  let { data, error } = await getSupabase()
     .from('tasks')
-    .insert({
-      user_id: userId,
-      title: title.trim(),
-      status,
-      deadline: deadline || null,
-    })
-    .select('id, user_id, title, status, deadline, created_at')
+    .insert(row)
+    .select(TASK_SELECT)
     .single()
+
+  if (error?.message?.includes('updated_at')) {
+    ;({ data, error } = await getSupabase()
+      .from('tasks')
+      .insert(row)
+      .select('id, user_id, title, status, deadline, created_at')
+      .single())
+  }
 
   if (error) {
     throw error
   }
 
-  return data
+  return normalizeTask(data)
 }
 
 export async function updateTask(userId, taskId, { title, status }) {
-  const { data, error } = await getSupabase()
+  const payload = {
+    title: title.trim(),
+    status,
+    updated_at: new Date().toISOString(),
+  }
+
+  let { data, error } = await getSupabase()
     .from('tasks')
-    .update({
-      title: title.trim(),
-      status,
-    })
+    .update(payload)
     .eq('id', taskId)
     .eq('user_id', userId)
-    .select('id, user_id, title, status, deadline, created_at')
+    .select(TASK_SELECT)
     .single()
+
+  if (error?.message?.includes('updated_at')) {
+    ;({ data, error } = await getSupabase()
+      .from('tasks')
+      .update({ title: payload.title, status: payload.status })
+      .eq('id', taskId)
+      .eq('user_id', userId)
+      .select('id, user_id, title, status, deadline, created_at')
+      .single())
+  }
 
   if (error) {
     throw error
   }
 
-  return data
+  return normalizeTask(data)
 }
 
 export async function deleteTask(userId, taskId) {
-  const { error } = await supabase
+  const { error } = await getSupabase()
     .from('tasks')
     .delete()
     .eq('id', taskId)
