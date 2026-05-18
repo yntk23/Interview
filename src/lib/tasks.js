@@ -15,6 +15,8 @@ export const EMPTY_TASK_STATS = {
   total: 0,
 }
 
+export const PAGE_SIZE = 10
+
 export const TASK_FILTERS = [
   { id: 'ALL', label: 'ทั้งหมด' },
   { id: 'TODO', label: 'TODO' },
@@ -22,6 +24,8 @@ export const TASK_FILTERS = [
   { id: 'DONE', label: 'DONE' },
   { id: 'OVERDUE', label: 'งานที่สายแล้ว' },
 ]
+
+const ANALYTICS_SELECT = 'status, deadline, created_at, updated_at'
 
 function normalizeTask(record) {
   return {
@@ -114,21 +118,69 @@ export function applyTaskRealtimeEvent(tasks, payload, userId) {
   return tasks
 }
 
-async function queryTasks(userId, columns) {
-  return getSupabase()
-    .from('tasks')
-    .select(columns)
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
+function applyFilterToQuery(query, filterId) {
+  if (filterId === STATUS.TODO || filterId === STATUS.DOING || filterId === STATUS.DONE) {
+    return query.eq('status', filterId)
+  }
+
+  if (filterId === 'OVERDUE') {
+    return query
+      .lt('deadline', new Date().toISOString())
+      .neq('status', STATUS.DONE)
+      .not('deadline', 'is', null)
+  }
+
+  return query
 }
 
-export async function fetchTasks(userId) {
-  let { data, error } = await queryTasks(userId, TASK_SELECT)
+function buildTasksQuery(userId, columns, filterId) {
+  let query = getSupabase()
+    .from('tasks')
+    .select(columns, { count: 'exact' })
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  return applyFilterToQuery(query, filterId)
+}
+
+export async function fetchTasksPage(
+  userId,
+  { page = 0, pageSize = PAGE_SIZE, filterId = 'ALL' } = {},
+) {
+  const from = page * pageSize
+  const to = from + pageSize - 1
+
+  let { data, error, count } = await buildTasksQuery(userId, TASK_SELECT, filterId).range(
+    from,
+    to,
+  )
 
   if (error?.message?.includes('updated_at')) {
-    ;({ data, error } = await queryTasks(
+    ;({ data, error, count } = await buildTasksQuery(
       userId,
       'id, user_id, title, status, deadline, created_at',
+      filterId,
+    ).range(from, to))
+  }
+
+  if (error) {
+    throw error
+  }
+
+  return {
+    tasks: (data ?? []).map(normalizeTask),
+    totalCount: count ?? 0,
+  }
+}
+
+export async function fetchTasksForExport(userId, filterId = 'ALL') {
+  let { data, error } = await buildTasksQuery(userId, TASK_SELECT, filterId)
+
+  if (error?.message?.includes('updated_at')) {
+    ;({ data, error } = await buildTasksQuery(
+      userId,
+      'id, user_id, title, status, deadline, created_at',
+      filterId,
     ))
   }
 
@@ -137,6 +189,33 @@ export async function fetchTasks(userId) {
   }
 
   return (data ?? []).map(normalizeTask)
+}
+
+export async function fetchTasksForAnalytics(userId) {
+  let { data, error } = await getSupabase()
+    .from('tasks')
+    .select(ANALYTICS_SELECT)
+    .eq('user_id', userId)
+
+  if (error?.message?.includes('updated_at')) {
+    ;({ data, error } = await getSupabase()
+      .from('tasks')
+      .select('status, deadline, created_at')
+      .eq('user_id', userId))
+  }
+
+  if (error) {
+    throw error
+  }
+
+  return data ?? []
+}
+
+export function getTotalPages(totalCount, pageSize = PAGE_SIZE) {
+  if (totalCount === 0) {
+    return 1
+  }
+  return Math.ceil(totalCount / pageSize)
 }
 
 export async function fetchTaskStats(userId) {

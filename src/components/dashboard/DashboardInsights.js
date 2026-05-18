@@ -5,7 +5,7 @@ import WeeklyWorkloadChart from '@/components/dashboard/WeeklyWorkloadChart'
 import { useTasks } from '@/contexts/TasksContext'
 
 export default function DashboardInsights() {
-  const { tasks, loading } = useTasks()
+  const { analyticsTasks, loading } = useTasks()
 
   return (
     <section className="card-panel">
@@ -21,7 +21,7 @@ export default function DashboardInsights() {
           <h3 className="text-sm font-semibold text-slate-900">Weekly workload</h3>
           <p className="card-panel-muted mt-1 text-xs">Tasks due Mon–Sun this week</p>
           <div className="mt-4">
-            <WeeklyWorkloadChart tasks={tasks} loading={loading} />
+            <WeeklyWorkloadChart tasks={analyticsTasks} loading={loading} />
           </div>
         </article>
 
@@ -29,7 +29,7 @@ export default function DashboardInsights() {
           <h3 className="text-sm font-semibold text-slate-900">Task completion trend</h3>
           <p className="card-panel-muted mt-1 text-xs">DONE tasks over the last 7 days</p>
           <div className="mt-4">
-            <TaskCompletionTrendChart tasks={tasks} loading={loading} />
+            <TaskCompletionTrendChart tasks={analyticsTasks} loading={loading} />
           </div>
         </article>
       </div>
