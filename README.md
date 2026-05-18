@@ -83,6 +83,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 | Field | Value |
 |---|---|
 | Username | `nontakorn` |
+| Username | `Master` |
 
 **4. Run the development server**
 
