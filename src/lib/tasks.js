@@ -18,11 +18,11 @@ export const EMPTY_TASK_STATS = {
 export const PAGE_SIZE = 10
 
 export const TASK_FILTERS = [
-  { id: 'ALL', label: 'ทั้งหมด' },
-  { id: 'TODO', label: 'TODO' },
-  { id: 'DOING', label: 'DOING' },
-  { id: 'DONE', label: 'DONE' },
-  { id: 'OVERDUE', label: 'งานที่สายแล้ว' },
+  { id: 'ALL', label: 'All' },
+  { id: 'TODO', label: 'To Do' },
+  { id: 'DOING', label: 'Doing' },
+  { id: 'DONE', label: 'Done' },
+  { id: 'OVERDUE', label: 'Overdue' },
 ]
 
 const ANALYTICS_SELECT = 'status, deadline, created_at, updated_at'
